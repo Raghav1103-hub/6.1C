@@ -1,94 +1,113 @@
 pipeline {
     agent any
-    
+
+    environment {
+        RECIPIENT_EMAIL = 'singlaraghav158@gmail.com'
+        MAVEN_HOME = tool name: 'Maven 3.x', type: 'maven'
+    }
+
     stages {
         stage('Build') {
             steps {
-                echo 'Stage 1: Build Process'
-                echo 'Details: The code is being built using an automation tool that compiles and packages the application.'
-                echo 'Automation Tool: Maven is being utilized for automating the build process.'
+                echo 'Phase 1: Initiating Build Process'
+                echo 'Description: Compiling and packaging the application using Maven.'
+                sh "${MAVEN_HOME}/bin/mvn clean package"
             }
         }
-        
-        stage('Unit and Integration Tests') {
+
+        stage('Unit and Integration Testing') {
             steps {
-                echo 'Stage 2: Unit and Integration Testing'
-                echo 'Details: Executing unit tests to verify functionality and integration tests to ensure that all components work together as intended.'
-                echo 'Testing Framework: JUnit 5 is used for performing unit tests.'
+                echo 'Phase 2: Running Unit and Integration Tests'
+                echo 'Description: Executing JUnit 5-based unit tests and integration tests to ensure all components function as expected.'
+                sh "${MAVEN_HOME}/bin/mvn test"
             }
             post {
                 success {
                     emailext(
                         attachLog: true,
-                        to: 'singlaraghav158@gmail.com',
+                        to: RECIPIENT_EMAIL,
                         subject: 'Unit and Integration Tests: Success',
-                        body: 'Stage 2 has successfully passed. Please refer to the attached logs for more information.'
+                        body: 'Phase 2 passed successfully. Please review the attached logs for further details.'
                     )
                 }
                 failure {
                     emailext(
                         attachLog: true,
-                        to: 'singlaraghav158@gmail.com',
+                        to: RECIPIENT_EMAIL,
                         subject: 'Unit and Integration Tests: Failure',
-                        body: 'Stage 2 failed. Please check the attached logs for further details.'
-                    )
-                }
-            }
-        }
-        
-        stage('Code Analysis') {
-            steps {
-                echo 'Stage 3: Code Quality Analysis'
-                echo 'Details: Performing a code analysis to ensure it adheres to industry standards and best practices.'
-                echo 'Analysis Tool: SonarQube is employed for static code analysis.'
-            }
-        }
-        
-        stage('Security Scan') {
-            steps {
-                echo 'Stage 4: Security Vulnerability Scan'
-                echo 'Details: Conducting a security scan to identify potential vulnerabilities in the application.'
-                echo 'Security Tool: OWASP Dependency-Check is utilized for scanning vulnerabilities.'
-            }
-            post {
-                success {
-                    emailext (
-                        attachLog: true,
-                        to: 'singlaraghav158@gmail.com',
-                        subject: 'Security Scan: Successful',
-                        body: 'Stage 4 completed successfully. Logs are attached for reference.'
-                    )
-                }
-                failure {
-                    emailext(
-                        attachLog: true,
-                        to: 'singlaraghav158@gmail.com',
-                        subject: 'Security Scan: Failed',
-                        body: 'Stage 4 encountered a failure. Logs are attached for review.'
+                        body: 'Phase 2 encountered failures. Review the attached logs for details.'
                     )
                 }
             }
         }
 
-        stage('Deploy to Staging') {
+        stage('Static Code Analysis') {
             steps {
-                echo 'Stage 5: Deployment to Staging'
-                echo 'Details: Deploying the application to the staging environment, simulating a production-like AWS EC2 instance.'
+                echo 'Phase 3: Performing Code Quality Assessment'
+                echo 'Description: Running static code analysis using SonarQube to ensure the code meets best practices and standards.'
+                withSonarQubeEnv('SonarQube') {
+                    sh "${MAVEN_HOME}/bin/mvn sonar:sonar"
+                }
             }
         }
-        
-        stage('Integration Tests on Staging') {
+
+        stage('Security Vulnerability Scanning') {
             steps {
-                echo 'Stage 6: Integration Testing in Staging'
-                echo 'Details: Running integration tests in the staging environment to ensure the application behaves as expected in a production-simulated environment.'
+                echo 'Phase 4: Scanning for Security Vulnerabilities'
+                echo 'Description: Conducting a security scan using OWASP Dependency-Check to identify any vulnerabilities.'
+                sh "${MAVEN_HOME}/bin/mvn org.owasp:dependency-check-maven:check"
+            }
+            post {
+                success {
+                    emailext(
+                        attachLog: true,
+                        to: RECIPIENT_EMAIL,
+                        subject: 'Security Scan: Success',
+                        body: 'Phase 4 completed successfully. Logs are attached for your reference.'
+                    )
+                }
+                failure {
+                    emailext(
+                        attachLog: true,
+                        to: RECIPIENT_EMAIL,
+                        subject: 'Security Scan: Failure',
+                        body: 'Phase 4 failed. Please check the attached logs for more information.'
+                    )
+                }
             }
         }
-        
-        stage('Deploy to Production') {
+
+        stage('Staging Environment Deployment') {
             steps {
-                echo 'Stage 7: Deployment to Production'
-                echo 'Details: Deploying the application to the production environment on AWS EC2.'
+                echo 'Phase 5: Deploying to Staging Environment'
+                echo 'Description: Deploying the application to a staging environment, simulating production on AWS EC2.'
+                // Placeholder for the actual staging deployment script
+                sh 'deploy_to_staging.sh'
             }
+        }
+
+        stage('Integration Testing in Staging') {
+            steps {
+                echo 'Phase 6: Running Integration Tests in Staging'
+                echo 'Description: Performing integration tests within the staging environment to verify the application’s behavior in a production-like setting.'
+                // Placeholder for the actual integration testing script in staging
+                sh 'run_staging_tests.sh'
+            }
+        }
+
+        stage('Production Deployment') {
+            steps {
+                echo 'Phase 7: Deploying to Production Environment'
+                echo 'Description: Deploying the finalized application to the production environment on AWS EC2.'
+                // Placeholder for the actual production deployment script
+                sh 'deploy_to_production.sh'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline execution completed.'
         }
     }
 }
