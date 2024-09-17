@@ -9,16 +9,16 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Stage 1: Build Process'
-                echo 'Details: The code is being built using Maven for compilation and packaging.'
+                echo 'Stage 1: Building the code'
+                echo 'Details: Compiling and packaging the application using Maven.'
                 sh "${MAVEN_HOME}/bin/mvn clean package"
             }
         }
 
         stage('Unit and Integration Tests') {
             steps {
-                echo 'Stage 2: Unit and Integration Testing'
-                echo 'Details: Running unit tests using JUnit 5.'
+                echo 'Stage 2: Running Unit and Integration Tests'
+                echo 'Details: Running unit tests using JUnit and integration tests to ensure the components work together.'
                 sh "${MAVEN_HOME}/bin/mvn test"
             }
             post {
@@ -27,7 +27,7 @@ pipeline {
                         attachLog: true,
                         to: RECIPIENT_EMAIL,
                         subject: 'Unit and Integration Tests: Success',
-                        body: 'Stage 2 has successfully passed. Please refer to the attached logs for more information.'
+                        body: 'Stage 2 passed successfully. Check the attached logs for details.'
                     )
                 }
                 failure {
@@ -35,7 +35,7 @@ pipeline {
                         attachLog: true,
                         to: RECIPIENT_EMAIL,
                         subject: 'Unit and Integration Tests: Failure',
-                        body: 'Stage 2 failed. Please check the attached logs for further details.'
+                        body: 'Stage 2 failed. Check the attached logs for more information.'
                     )
                 }
             }
@@ -43,9 +43,8 @@ pipeline {
 
         stage('Code Analysis') {
             steps {
-                echo 'Stage 3: Code Quality Analysis'
-                echo 'Details: Running SonarQube for static code analysis.'
-                // Assuming SonarQube is already configured in Jenkins
+                echo 'Stage 3: Analyzing Code Quality'
+                echo 'Details: Performing code quality analysis using SonarQube.'
                 withSonarQubeEnv('SonarQube') {
                     sh "${MAVEN_HOME}/bin/mvn sonar:sonar"
                 }
@@ -54,25 +53,25 @@ pipeline {
 
         stage('Security Scan') {
             steps {
-                echo 'Stage 4: Security Vulnerability Scan'
+                echo 'Stage 4: Performing Security Scan'
                 echo 'Details: Scanning for vulnerabilities using OWASP Dependency-Check.'
                 sh "${MAVEN_HOME}/bin/mvn org.owasp:dependency-check-maven:check"
             }
             post {
                 success {
-                    emailext (
+                    emailext(
                         attachLog: true,
                         to: RECIPIENT_EMAIL,
                         subject: 'Security Scan: Success',
-                        body: 'Stage 4 completed successfully. Logs are attached for reference.'
+                        body: 'Stage 4 completed successfully. Logs attached for reference.'
                     )
                 }
                 failure {
                     emailext(
                         attachLog: true,
                         to: RECIPIENT_EMAIL,
-                        subject: 'Security Scan: Failed',
-                        body: 'Stage 4 encountered a failure. Logs are attached for review.'
+                        subject: 'Security Scan: Failure',
+                        body: 'Stage 4 failed. Check the attached logs for details.'
                     )
                 }
             }
@@ -80,27 +79,27 @@ pipeline {
 
         stage('Deploy to Staging') {
             steps {
-                echo 'Stage 5: Deployment to Staging'
-                echo 'Details: Deploying the application to the staging environment on an AWS EC2 instance.'
-                // Add deployment script or command for staging deployment
+                echo 'Stage 5: Deploying to Staging'
+                echo 'Details: Deploying the application to the staging environment (AWS EC2).'
+                // Add your deployment script for staging here
                 sh 'deploy_to_staging.sh'
             }
         }
 
         stage('Integration Tests on Staging') {
             steps {
-                echo 'Stage 6: Integration Testing in Staging'
+                echo 'Stage 6: Running Integration Tests in Staging'
                 echo 'Details: Running integration tests in the staging environment.'
-                // Add commands for running tests in the staging environment
+                // Add your staging test commands here
                 sh 'run_staging_tests.sh'
             }
         }
 
         stage('Deploy to Production') {
             steps {
-                echo 'Stage 7: Deployment to Production'
-                echo 'Details: Deploying the application to the production environment on AWS EC2.'
-                // Add deployment script or command for production deployment
+                echo 'Stage 7: Deploying to Production'
+                echo 'Details: Deploying the application to the production environment (AWS EC2).'
+                // Add your production deployment script here
                 sh 'deploy_to_production.sh'
             }
         }
@@ -108,7 +107,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline completed.'
+            echo 'Pipeline execution completed.'
         }
     }
 }
