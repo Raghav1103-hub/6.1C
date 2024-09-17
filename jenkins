@@ -9,16 +9,16 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Phase 1: Initiating Build Process'
-                echo 'Description: Compiling and packaging the application using Maven.'
+                echo 'Stage 1: Build Process'
+                echo 'Details: The code is being built using Maven for compilation and packaging.'
                 sh "${MAVEN_HOME}/bin/mvn clean package"
             }
         }
 
-        stage('Unit and Integration Testing') {
+        stage('Unit and Integration Tests') {
             steps {
-                echo 'Phase 2: Running Unit and Integration Tests'
-                echo 'Description: Executing JUnit 5-based unit tests and integration tests to ensure all components function as expected.'
+                echo 'Stage 2: Unit and Integration Testing'
+                echo 'Details: Running unit tests using JUnit 5.'
                 sh "${MAVEN_HOME}/bin/mvn test"
             }
             post {
@@ -27,7 +27,7 @@ pipeline {
                         attachLog: true,
                         to: RECIPIENT_EMAIL,
                         subject: 'Unit and Integration Tests: Success',
-                        body: 'Phase 2 passed successfully. Please review the attached logs for further details.'
+                        body: 'Stage 2 has successfully passed. Please refer to the attached logs for more information.'
                     )
                 }
                 failure {
@@ -35,71 +35,72 @@ pipeline {
                         attachLog: true,
                         to: RECIPIENT_EMAIL,
                         subject: 'Unit and Integration Tests: Failure',
-                        body: 'Phase 2 encountered failures. Review the attached logs for details.'
+                        body: 'Stage 2 failed. Please check the attached logs for further details.'
                     )
                 }
             }
         }
 
-        stage('Static Code Analysis') {
+        stage('Code Analysis') {
             steps {
-                echo 'Phase 3: Performing Code Quality Assessment'
-                echo 'Description: Running static code analysis using SonarQube to ensure the code meets best practices and standards.'
+                echo 'Stage 3: Code Quality Analysis'
+                echo 'Details: Running SonarQube for static code analysis.'
+                // Assuming SonarQube is already configured in Jenkins
                 withSonarQubeEnv('SonarQube') {
                     sh "${MAVEN_HOME}/bin/mvn sonar:sonar"
                 }
             }
         }
 
-        stage('Security Vulnerability Scanning') {
+        stage('Security Scan') {
             steps {
-                echo 'Phase 4: Scanning for Security Vulnerabilities'
-                echo 'Description: Conducting a security scan using OWASP Dependency-Check to identify any vulnerabilities.'
+                echo 'Stage 4: Security Vulnerability Scan'
+                echo 'Details: Scanning for vulnerabilities using OWASP Dependency-Check.'
                 sh "${MAVEN_HOME}/bin/mvn org.owasp:dependency-check-maven:check"
             }
             post {
                 success {
-                    emailext(
+                    emailext (
                         attachLog: true,
                         to: RECIPIENT_EMAIL,
                         subject: 'Security Scan: Success',
-                        body: 'Phase 4 completed successfully. Logs are attached for your reference.'
+                        body: 'Stage 4 completed successfully. Logs are attached for reference.'
                     )
                 }
                 failure {
                     emailext(
                         attachLog: true,
                         to: RECIPIENT_EMAIL,
-                        subject: 'Security Scan: Failure',
-                        body: 'Phase 4 failed. Please check the attached logs for more information.'
+                        subject: 'Security Scan: Failed',
+                        body: 'Stage 4 encountered a failure. Logs are attached for review.'
                     )
                 }
             }
         }
 
-        stage('Staging Environment Deployment') {
+        stage('Deploy to Staging') {
             steps {
-                echo 'Phase 5: Deploying to Staging Environment'
-                echo 'Description: Deploying the application to a staging environment, simulating production on AWS EC2.'
-                // Placeholder for the actual staging deployment script
+                echo 'Stage 5: Deployment to Staging'
+                echo 'Details: Deploying the application to the staging environment on an AWS EC2 instance.'
+                // Add deployment script or command for staging deployment
                 sh 'deploy_to_staging.sh'
             }
         }
 
-        stage('Integration Testing in Staging') {
+        stage('Integration Tests on Staging') {
             steps {
-                echo 'Phase 6: Running Integration Tests in Staging'
-                echo 'Description: Performing integration tests within the staging environment to verify the application’s behavior in a production-like setting.'
-                // Placeholder for the actual integration testing script in staging
+                echo 'Stage 6: Integration Testing in Staging'
+                echo 'Details: Running integration tests in the staging environment.'
+                // Add commands for running tests in the staging environment
                 sh 'run_staging_tests.sh'
             }
         }
 
-        stage('Production Deployment') {
+        stage('Deploy to Production') {
             steps {
-                echo 'Phase 7: Deploying to Production Environment'
-                echo 'Description: Deploying the finalized application to the production environment on AWS EC2.'
-                // Placeholder for the actual production deployment script
+                echo 'Stage 7: Deployment to Production'
+                echo 'Details: Deploying the application to the production environment on AWS EC2.'
+                // Add deployment script or command for production deployment
                 sh 'deploy_to_production.sh'
             }
         }
@@ -107,7 +108,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline execution completed.'
+            echo 'Pipeline completed.'
         }
     }
 }
